@@ -76,24 +76,7 @@
 //  - A generated #[derive(Debug)] function (in which case the attribute needs
 //    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
-
-extern crate bare_metal;
-extern crate volatile_register;
-
 #[macro_use]
 mod call_asm;
-#[macro_use]
-mod macros;
 
 pub mod asm;
-#[cfg(armv8m)]
-pub mod cmse;
-pub mod delay;
-pub mod interrupt;
-#[cfg(all(not(armv6m), not(armv8m_base)))]
-pub mod itm;
-pub mod peripheral;
-pub mod prelude;
-pub mod register;
-
-pub use crate::peripheral::Peripherals;
