@@ -1,13 +1,8 @@
-[![crates.io](https://img.shields.io/crates/d/cortex-m.svg)](https://crates.io/crates/cortex-m)
-[![crates.io](https://img.shields.io/crates/v/cortex-m.svg)](https://crates.io/crates/cortex-m)
+# `cortex-m-asm`
 
-# `cortex-m`
+> Provides cortex-m assembly from the `cortex-m` crate as a separate crate
 
-> Low level access to Cortex-M processors
-
-This project is developed and maintained by the [Cortex-M team][team].
-
-## [Documentation](https://docs.rs/crate/cortex-m)
+**NOTE**: This crate is NOT affiliated with the Rust embedded group
 
 ## Minimum Supported Rust Version (MSRV)
 
@@ -28,12 +23,3 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the
 work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
 additional terms or conditions.
-
-## Code of Conduct
-
-Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
-to intervene to uphold that code of conduct.
-
-[CoC]: CODE_OF_CONDUCT.md
-[team]: https://github.com/rust-embedded/wg#the-cortex-m-team
