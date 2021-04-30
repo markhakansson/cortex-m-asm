@@ -7,6 +7,8 @@ macro_rules! call_asm {
         #[allow(unused_unsafe)]
         unsafe {
             match () {
+                #[cfg(feature = "klee-analysis")]
+                () => {},
                 #[cfg(feature = "inline-asm")]
                 () => crate::asm::inline::$func($($args),*),
 

@@ -9,8 +9,33 @@
 use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(always)]
-pub unsafe fn __bkpt() {
-    asm!("bkpt");
+pub unsafe fn __bkpt(imm: u8) {
+    macro_rules! call {
+        ($imm:expr) => {
+            asm!(concat!("bkpt ", stringify!($imm)))
+        };
+    }
+    #[allow(unused)]
+    macro_rules! constify_imm8 {
+        ($imm8:expr, $expand:ident) => {
+            #[allow(overflowing_literals)]
+            match ($imm8) & 0b1111_1111 {
+                0 => $expand!(0),
+                1 => $expand!(1),
+                2 => $expand!(2),
+                3 => $expand!(3),
+                4 => $expand!(4),
+                5 => $expand!(5),
+                251 => $expand!(251),
+                252 => $expand!(252),
+                253 => $expand!(253),
+                254 => $expand!(254),
+                255 => $expand!(255),
+                _ => $expand!(0),
+            }
+        };
+    }
+    constify_imm8!(imm, call);
 }
 
 #[inline(always)]

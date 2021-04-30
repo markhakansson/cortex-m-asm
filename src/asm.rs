@@ -6,13 +6,27 @@
 #[path = "../asm/inline.rs"]
 pub(crate) mod inline;
 
+#[cfg(feature = "klee-analysis")]
+use klee_rs::klee_make_symbolic;
+
 /// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
 ///
 /// **NOTE** calling `bkpt` when the processor is not connected to a debugger will cause an
 /// exception.
 #[inline(always)]
 pub fn bkpt() {
-    call_asm!(__bkpt());
+    let num = 0;
+    call_asm!(__bkpt(num: u8));
+}
+
+/// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint" with
+/// the given immediate value.
+///
+/// **NOTE** calling `bkpt` when the processor is not connected to a debugger will cause an
+/// exception.
+#[inline(always)]
+pub fn bkpt_imm(imm: u8) {
+    call_asm!(__bkpt(imm: u8));
 }
 
 /// Blocks the program for *at least* `cycles` CPU cycles.
@@ -38,9 +52,18 @@ pub fn nop() {
 /// Generate an Undefined Instruction exception.
 ///
 /// Can be used as a stable alternative to `core::intrinsics::abort`.
+#[cfg(not(feature = "klee-analysis"))]
 #[inline]
 pub fn udf() -> ! {
     call_asm!(__udf() -> !)
+}
+/// Generate an Undefined Instruction exception (For KLEE)
+///
+/// Can be used as a stable alternative to `core::intrinsics::abort`.
+#[cfg(feature = "klee-analysis")]
+#[inline]
+pub fn udf() -> ! {
+    loop {}
 }
 
 /// Wait For Event
@@ -81,7 +104,6 @@ pub fn isb() {
 pub fn dsb() {
     call_asm!(__dsb())
 }
-
 /// Data Memory Barrier
 ///
 /// Ensures that all explicit memory accesses that appear in program order before the `DMB`
@@ -166,9 +188,19 @@ pub unsafe fn bx_ns(addr: u32) {
 /// Semihosting syscall.
 ///
 /// This method is used by cortex-m-semihosting to provide semihosting syscalls.
+#[cfg(not(feature = "klee-analysis"))]
 #[inline]
 pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
     call_asm!(__sh_syscall(nr: u32, arg: u32) -> u32)
+}
+/// Semihosting syscall.
+/// For feature "klee-analysis"
+#[cfg(feature = "klee-analysis")]
+#[inline]
+pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
+    let mut r: u32 = unsafe { core::mem::MaybeUninit::uninit().assume_init() };
+    klee_make_symbolic(&mut r, "BASEPRI_R");
+    r
 }
 
 /// Bootstrap.
@@ -181,12 +213,20 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 ///
 /// `msp` and `rv` must point to valid stack memory and executable code,
 /// respectively.
+#[cfg(not(feature = "klee-analysis"))]
 #[inline]
 pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
     // Ensure thumb mode is set.
     let rv = (rv as u32) | 1;
     let msp = msp as u32;
     call_asm!(__bootstrap(msp: u32, rv: u32) -> !);
+}
+/// Bootstrap.
+/// For feature "klee-analysis"
+#[cfg(feature = "klee-analysis")]
+#[inline]
+pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
+    loop {}
 }
 
 /// Bootload.
@@ -201,9 +241,16 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
 /// The provided `vector_table` must point to a valid vector
 /// table, with a valid stack pointer as the first word and
 /// a valid reset vector as the second word.
+#[cfg(not(feature = "klee-analysis"))]
 #[inline]
 pub unsafe fn bootload(vector_table: *const u32) -> ! {
     let msp = core::ptr::read_volatile(vector_table);
     let rv = core::ptr::read_volatile(vector_table.offset(1));
     bootstrap(msp as *const u32, rv as *const u32);
+}
+/// Bootload.
+/// For feature "klee-analysis"
+#[cfg(feature = "klee-analysis")]
+pub unsafe fn bootload(vector_table: *const u32) -> ! {
+    loop {}
 }

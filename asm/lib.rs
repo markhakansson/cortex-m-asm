@@ -53,7 +53,7 @@ macro_rules! shims {
 }
 
 shims! {
-    fn __bkpt();
+    fn __bkpt(imm: u8);
     fn __control_r() -> u32;
     fn __control_w(w: u32);
     fn __cpsid();
